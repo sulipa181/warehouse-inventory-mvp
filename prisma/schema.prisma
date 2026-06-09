@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id        Int      @id @default(autoincrement())
+  sku       String   @unique
+  barcode   String?
+  name      String
+  spec      String?
+  unit      String?
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model InventorySession {
+  id           Int            @id @default(autoincrement())
+  title        String
+  month        String
+  status       String         @default("open")
+  systemStocks SystemStock[]
+  countedStocks CountedStock[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model SystemStock {
+  id        Int      @id @default(autoincrement())
+  sessionId Int
+  sku       String
+  barcode   String?
+  systemQty Int
+  session   InventorySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, sku])
+}
+
+model CountedStock {
+  id         Int      @id @default(autoincrement())
+  sessionId  Int
+  sku        String
+  countedQty Int
+  countedBy  String
+  note       String?
+  session    InventorySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([sessionId, sku])
+}
